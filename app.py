@@ -1,15 +1,14 @@
+%%writefile app.py
 import streamlit as st
 import pickle
 import numpy as np
 
-# 1. Load the trained model
-# Note: Since your model was trained on scaled data, it is highly recommended to 
-# also save and load your StandardScaler. For now, this loads the model directly.
+ # 1. Load the trained model
 try:
     with open('gold_model.pkl', 'rb') as file:
-        model = pickle.pickle.load(file) if hasattr(pickle, 'pickle') else pickle.load(file)
+        model = pickle.load(file)  # <-- Fixed typo here
 except FileNotFoundError:
-    st.error("Error: 'gold_model.pkl' not found. Please ensure the model file is in the same directory.")
+    st.error("Error: 'gold_model.pkl' not found.")
 
 # 2. App Title and Description
 st.title("Gold Price Prediction App")
@@ -25,7 +24,7 @@ def user_input_features():
     uso = st.sidebar.number_input("USO (United States Oil Fund)", min_value=0.0, value=78.47, step=0.1)
     slv = st.sidebar.number_input("SLV (Silver ETF)", min_value=0.0, value=15.18, step=0.1)
     eur_usd = st.sidebar.number_input("EUR/USD Exchange Rate", min_value=0.0, value=1.47, step=0.01)
-    
+
     # Pack features into a numpy array for prediction
     features = np.array([[spx, uso, slv, eur_usd]])
     return features
@@ -42,7 +41,7 @@ if st.button("Predict Gold Price"):
         # If you scaled your training data using StandardScaler, your inputs should technically
         # be transformed here using scaler.transform(input_data) before prediction.
         prediction = model.predict(input_data)
-        
+
         st.success(f"### Predicted GLD Price: ${prediction[0]:.2f}")
     except NameError:
         st.error("Model could not be loaded. Prediction aborted.")
