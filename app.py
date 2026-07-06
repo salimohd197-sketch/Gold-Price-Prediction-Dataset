@@ -4,10 +4,7 @@ import numpy as np
 
  # 1. Load the trained model
 try:
-    with open('gold_model.pkl', 'rb') as file:
-        model = pickle.load(file)  # <-- Fixed typo here
-except FileNotFoundError:
-    st.error("Error: 'gold_model.pkl' not found.")
+  
 
 # 2. App Title and Description
 st.title("Gold Price Prediction App")
