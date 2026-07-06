@@ -2,42 +2,46 @@ import streamlit as st
 import pickle
 import numpy as np
 
- # 1. Load the trained model
-try:
-  
+# Page configuration
+st.set_page_config(page_title="Gold Price Prediction", layout="centered")
 
-# 2. App Title and Description
+# App header
 st.title("Gold Price Prediction App")
-st.write("""
-This app predicts the **GLD (Gold Price)** based on financial market metrics.
-""")
+st.write("Enter the required details below to predict the gold price.")
 
-st.sidebar.header("Input Features")
-
-# 3. Input fields matching the model's expected features: ['SPX', 'USO', 'SLV', 'EUR/USD']
-def user_input_features():
-    spx = st.sidebar.number_input("SPX Index (S&P 500)", min_value=0.0, value=1447.16, step=1.0)
-    uso = st.sidebar.number_input("USO (United States Oil Fund)", min_value=0.0, value=78.47, step=0.1)
-    slv = st.sidebar.number_input("SLV (Silver ETF)", min_value=0.0, value=15.18, step=0.1)
-    eur_usd = st.sidebar.number_input("EUR/USD Exchange Rate", min_value=0.0, value=1.47, step=0.01)
-
-    # Pack features into a numpy array for prediction
-    features = np.array([[spx, uso, slv, eur_usd]])
-    return features
-
-input_data = user_input_features()
-
-# Display the input values back to the user
-st.subheader("Current Input Parameters")
-st.write(f"**SPX:** {input_data[0][0]} | **USO:** {input_data[0][1]} | **SLV:** {input_data[0][2]} | **EUR/USD:** {input_data[0][3]}")
-
-# 4. Predict Button and Output
-if st.button("Predict Gold Price"):
+# 1. Load the model safely
+@st.cache_resource
+def load_model():
     try:
-        # If you scaled your training data using StandardScaler, your inputs should technically
-        # be transformed here using scaler.transform(input_data) before prediction.
-        prediction = model.predict(input_data)
+        # Apni pickle file ka sahi naam yahan check karlein
+        with open('gold_price_model.pkl', 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        return None
 
-        st.success(f"### Predicted GLD Price: ${prediction[0]:.2f}")
-    except NameError:
-        st.error("Model could not be loaded. Prediction aborted.")
+model = load_model()
+
+# 2. UI and Prediction Logic
+if model is None:
+    st.error("Error: 'gold_price_model.pkl' file nahi mili! Please check your GitHub repository.")
+else:
+    st.success("Model loaded successfully!")
+    
+    st.subheader("Enter Features:")
+    
+    # NOTE: Apne model ke mutabiq input fields ko tabdeel (change) karlein
+    # Agar aapka model 4 inputs leta hai, to humne misal ke taur par yeh likha hai:
+    spx = st.number_input("SPX Index", value=0.0)
+    uso = st.number_input("USO (Oil Price)", value=0.0)
+    slv = st.number_input("SLV (Silver Price)", value=0.0)
+    eur_usd = st.number_input("EUR/USD Ratio", value=0.0)
+    
+    if st.button("Predict Gold Price"):
+        # Inputs ko array mein convert karna
+        features = np.array([[spx, uso, slv, eur_usd]])
+        
+        # Prediction calculation
+        prediction = model.predict(features)
+        
+        # Display output
+        st.metric(label="Predicted Gold Price", value=f"${prediction[0]:.2f}")
